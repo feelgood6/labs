@@ -51,10 +51,10 @@
 
  #### 2.Настройка vty - линий.
  Так как мы находимся в режиме глобальной конфигурации, от сюда вводим такие команды:
-   line vty 0 4
-   password class
-   login
-   trasport input telnet
+    line vty 0 4
+    password class
+    login
+    trasport input telnet
    
    
    
