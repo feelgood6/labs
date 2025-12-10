@@ -50,6 +50,9 @@
     enable secret class
     banner motd #
     Unauthorized access is strictly prohibited. #
+    line con 0
+    passwor class
+    
   
 
  #### 2. Настройка vty - линий.
@@ -58,12 +61,32 @@
     line vty 0 4
     password class
     login
-    trasport input telnet
+    transport input telnet
 
 #### 3. Настройка IP адрессов на коммутаторе и компьютере.
 
- ##### Настройка IP на коммутаторе 
+ ##### Настройка IP на компьютере.
+ PC-PT PC0(Нажимаетм на компьютер > Desctop > IP Configuration
 
+ Задаем адрес 192.168.1.10 в строке IPv4 Addrres и маску 255.255.255.0 в строке Subnet Mask
+
+ ##### Настройка IP на коммутаторе.
+ Все также через терминал на компьюторе заходим на коммутатор.
+     enable
+     *вводим пароль
+     conf t
+     interface vlan 1
+     ip address 192.168.1.2 255.255.255.0
+     no shutdown
+
+
+
+
+
+
+ 
+ 
+ 
    
    
    
