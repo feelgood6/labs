@@ -27,8 +27,11 @@
   
   ##### Изучив файл файл конфигурации видим:
   a. Интерфейсов FastEthernet - 24 шт,
+  
   -Интерфейсов Gigabit Ethernet - 2 шт, 
+  
   -Два диапазона значений, отображаемых в vty-линиях( от 0 до 4 и от 5 до 15)
+  
   б. Просматриваем startup configuration
         show startup configuration
   Появляется сообщение startup configuration is not present, появляется оно из-за того, что не записан running-config в startup configuration.
