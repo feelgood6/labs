@@ -40,14 +40,14 @@
 
  #### 1.Настройка базовых параметров коммутатора.
  
-   enable
-   conf t
-   no ip domain-lookup
-   hostname S1
-   service password-encryption
-   enable secret class
-   banner motd #
-   Unauthorized access is strictly prohibited. #
+    enable
+    conf t
+    no ip domain-lookup
+    hostname S1
+    service password-encryption
+    enable secret class
+    banner motd #
+    Unauthorized access is strictly prohibited. #
   
 
  #### 2.Настройка vty - линий.
