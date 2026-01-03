@@ -52,6 +52,7 @@
     Unauthorized access is strictly prohibited. #
     line con 0
     passwor class
+    logging synchronous 
     login
 
 
@@ -152,18 +153,18 @@
     end
 
 
-  ##### Проверrf параметры VLAN 1. 
+  ##### Проверка параметров VLAN 1. 
   
       S1# show interface vlan 1 
 
-  Полоса пропуская ...
-
+  Полоса пропускания
+BW 100000 Kbit
 
    #### 2. Протестируем сквозное соединение, отправив эхо-запрос.
 
    ##### В командной строке компьютера PC-A с помощью утилиты ping проверяем связь с адресом PC-A.
 
-    ping 192.168.1.2
+    C:\>ping 192.168.1.10
     Pinging 192.168.1.10 with 32 bytes of data:
 
     Reply from 192.168.1.10: bytes=32 time<1ms TTL=128
@@ -176,13 +177,31 @@
     Approximate round trip times in milli-seconds:
       Minimum = 0ms, Maximum = 0ms, Average = 0ms 
 
-  ##### Из командной строки компьютера PC-A отправляем эхо-запрос на административный адрес интерфейса SVI коммутатора S1.       
+   ##### Из командной строки компьютера PC-A отправляем эхо-запрос на административный адрес интерфейса SVI коммутатора S1.  
+   
+     C:\>ping 192.168.1.2
+
+     Pinging 192.168.1.2 with 32 bytes of data:
+
+     Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+     Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+     Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+     Reply from 192.168.1.2: bytes=32 time<1ms TTL=255
+
+     Ping statistics for 192.168.1.2:
+         Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+     Approximate round trip times in milli-seconds:
+         Minimum = 0ms, Maximum = 0ms, Average = 0ms
 
 
    #### 3. Проверяем удаленное управление коммутатором S1.
+1. Заходим в командную строку на ПК.
+2. Вводим следующую команду в командную строку
 
-
+       telnet 192.168.1.2
+3. Вводим пароль class.
    
+
 
 
    ### Вопросы для повторения.
