@@ -232,10 +232,52 @@ BW 100000 Kbit
 
 
 
-#### Выгрузка из CPT перед инициализацией и перезагрузкой здесь.
+#### Выгрузка из CPT перед инициализацией и перезагрузкой [здесь](https://github.com/feelgood6/labs/raw/refs/heads/main/labs/labs1/1.pkt).
 
 
 
 ### Инициализация и перезагрузка коммутатора.
+
+
+b.	Воспользуйтесь командой show flash, чтобы определить, были ли созданы сети VLAN на коммутаторе.
+Switch# show flash
+Каталог flash:/
+
+    2 -rwx 1919 Mar 1 1993 00:06:33 +00:00 private-config.text
+    3 -rwx 1632 Mar 1 1993 00:06:33 +00:00 config.text
+    4 -rwx 13336 Mar 1 1993 00:06:33 +00:00 multiple-fs
+    5 -rwx 11607161 Mar 1 1993 02:37:06 +00:00 c2960-lanbasek9-mz.150-2.SE.bin
+    6 -rwx 616 Mar 1 1993 00:07:13 +00:00 vlan.dat
+
+всего 32514048 байтов (свободно 20886528 байта)
+
+
+### Вышеописанный пункт у меня не выдал файл vlan.dat.
+Directory of flash:/
+
+    1  -rw-     4670455          <no date>  2960-lanbasek9-mz.150-2.SE4.bin
+    2  -rw-        1349          <no date>  config.text
+
+64016384 bytes total (59344580 bytes free)
+
+
+##### Удаляем файл загрузочной конфигурации и перезагружаем коммутатор.
+
+    S1>e
+    S1>en
+    S1>enable 
+    Password: 
+    S1#era
+    S1#erase st
+    S1#erase startup-config 
+    Erasing the nvram filesystem will remove all configuration files! Continue? [confirm]
+    [OK]
+    Erase of nvram: complete
+    %SYS-7-NV_BLOCK_INIT: Initialized the geometry of nvram
+    S1#reload
+
+# Коммутатор вернулся в первоначальное состояние.
+
+
 
 
