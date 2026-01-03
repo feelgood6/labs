@@ -198,12 +198,32 @@ BW 100000 Kbit
 1. Заходим в командную строку на ПК.
 2. Вводим следующую команду в командную строку
 
-       telnet 192.168.1.2
+      telnet 192.168.1.2
+  
 3. Вводим пароль class.
+4. Сохраняем running-config в startup-config.
+   
+   Вывод из консоли:
    
 
+     C:\>telnet 192.168.1.2
+     Trying 192.168.1.2 ...OpenUnauthorized access is strictly prohibited. 
 
 
+     User Access Verification
+
+     Password: 
+     Password: 
+     S1>ena
+     S1>enable 
+     Password: 
+     S1#
+     S1#copy r
+     S1#copy running-config st
+     S1#copy running-config startup-config 
+     Destination filename [startup-config]? 
+     Building configuration...
+     [OK]
    ### Вопросы для повторения.
 
 1.	Зачем необходимо настраивать пароль VTY для коммутатора?
