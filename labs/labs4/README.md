@@ -37,9 +37,37 @@
 #### Часть 1. Настройка топологии и конфигурация основных параметров маршрутизатора и коммутатора.
 
 ##### Шаг 1. Построение сети согласно топологии инициализация и перезагрузка маршрутизатора и коммутатора.
-
+Консольным кабелем подключаемся к коммутатору и маршрутизатору.
+        Router>enable 
+        Router#erase startup-config
+        Router#reload 
+        
 ##### Шаг 2. Настройка маршрутизатора.
-Берем консольный кабель и с PC-B подключаемся к маршрутизатору, настраиваем его вручную
+        Router>enable
+        Router#conf t
+        Router(config)#hostname R1
+        R1(config)#interface gigabitEthernet 0/0/0
+        R1(config-if)#ipv6 address 2001:db8:acad:a::1/64
+        R1(config-if)#no shutdown
+        Ctrl+Z
+        R1# conf t
+        R1(config)# enable secret cisco          
+        R1(config)# service password-encryption  
+        R1(config)#line con 0
+        R1(config-line)#password cisco
+        R1(config-line)#login
+        R1(config-line)#logging synchronous 
+        R1(config-line)#exit
+        R1(config)#line vty 0 4
+        R1(config-line)#password cisco
+        R1(config-line)#login
+        R1(config-line)#transport input telnet 
+        R1(config)#banner motd # FEELGOOD66#
+        R1(config)#no ip domain-lookup
+        R1#copy running-config startup-config 
+        
+
+        
     
 #####
 #####
