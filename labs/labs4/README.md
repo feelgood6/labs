@@ -43,52 +43,77 @@
         Router#reload 
         
 ##### Шаг 2. Настройка маршрутизатора.
-        Router>enable
-        Router#conf t
-        Router(config)#hostname R1 
-        R1(config)# enable secret cisco          
-        R1(config)# service password-encryption  
-        R1(config)#banner motd # FEELGOOD66#
-        R1(config)#no ip domain-lookup
-        R1(config)#line con 0
-        R1(config-line)#password cisco
-        R1(config-line)#login
-        R1(config-line)#logging synchronous 
-        R1(config-line)#exit
-        R1(config)#line vty 0 4
-        R1(config-line)#password cisco
-        R1(config-line)#login
-        R1(config-line)#transport input telnet 
-        R1(config-line)#exec-timeout
-        R1#copy running-config startup-config 
+    Router>enable
+    Router#conf t
+    Router(config)#hostname R1 
+    R1(config)# enable secret cisco          
+    R1(config)# service password-encryption  
+    R1(config)#banner motd # FEELGOOD66#
+    R1(config)#no ip domain-lookup
+    R1(config)#ipv6 unicast-routing 
+    R1(config)#line con 0
+    R1(config-line)#password cisco
+    R1(config-line)#login
+    R1(config-line)#logging synchronous 
+    R1(config-line)#exit
+    R1(config)#line vty 0 4
+    R1(config-line)#password cisco
+    R1(config-line)#login
+    R1(config-line)#transport input telnet 
+    R1(config-line)#exec-timeout
+    R1#copy running-config startup-config 
         
 
         
     
 ##### Шаг 3. Настройка коммутатора.
-        Switch>enable
-        Switch#conf t
-        Switch(config)#hostname S1 
-        S1(config)# enable secret class          
-        S1(config)# service password-encryption  
-        S1(config)#banner motd # FEELGOOD66#
-        S1(config)#no ip domain-lookup
-        S1(config)#line con 0
-        S1(config-line)#password class
-        S1(config-line)#login
-        S1(config-line)#logging synchronous 
-        S1(config-line)#exit
-        S1(config)#line vty 0 4
-        S1(config-line)#password class
-        S1(config-line)#login
-        S1(config-line)#transport input telnet 
-        S1(config-line)#exec-timeout 5
-        S1#copy running-config startup-config 
+    Switch>enable
+    Switch#conf t
+    Switch(config)#hostname S1 
+    S1(config)# enable secret class          
+    S1(config)# service password-encryption  
+    S1(config)#banner motd # FEELGOOD66#
+    S1(config)#no ip domain-lookup
+    S1(config)#line con 0
+    S1(config-line)#password class
+    S1(config-line)#login
+    S1(config-line)#logging synchronous 
+    S1(config-line)#exit
+    S1(config)#line vty 0 4
+    S1(config-line)#password class
+    S1(config-line)#login
+    S1(config-line)#transport input telnet 
+    S1(config-line)#exec-timeout 5
+    S1#copy running-config startup-config 
 
         
 ### В следующих лабораторных работах базовые настройки будут пропускаться, тк базовые настройки считаю, что я выучил.
 
 
 
+#### Часть 2. Ручная настройка IPv6-адресов.
 
+##### Шаг 1. Назначьте IPv6-адреса интерфейсам Ethernet на R1.
+Назначаем глобальные индивидуальные IPv6-адреса, указанные в таблице адресации обоим интерфейсам Ethernet на R1.
 
+Для интерфейса G0/0/0
+
+    R1(config)#int G0/0/0
+    R1(config-if)#ipv6 address 2001:db8:acad:a::1/64
+
+Для интерфейса G0/0/1
+    R1(config)#int G0/0/1
+    R1(config-if)#ipv6 address 2001:db8:acad:1::1/64
+
+Проверяем назначения IPv6 на интерфейсах
+
+    R1#show ipv6 interface brief 
+    GigabitEthernet0/0/0       [administratively down/down]
+        FE80::201:96FF:FE6B:9A01
+        2001:DB8:ACAD:A::1
+    GigabitEthernet0/0/1       [administratively down/down]
+        FE80::201:96FF:FE6B:9A02
+        2001:DB8:ACAD:1::1
+    GigabitEthernet0/0/2       [administratively down/down]
+        unassigned
+    Vlan1                      [administratively down/down]
