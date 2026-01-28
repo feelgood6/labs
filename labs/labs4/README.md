@@ -117,3 +117,37 @@
     GigabitEthernet0/0/2       [administratively down/down]
         unassigned
     Vlan1                      [administratively down/down]
+
+
+Настройка локального IPv6 адреса на интерфейсах
+
+Для интерфейса G0/0/0
+
+    R1(config)#int G0/0/0
+    R1(config-if)#ipv6 address 2001:db8:acad:a::1/64
+
+Для интерфейса G0/0/1
+    R1(config)#int G0/0/1
+    R1(config-if)#ipv6 address 2001:db8:acad:1::1/64
+
+Проверяем 
+
+    R1#show ipv6 interface brief 
+    GigabitEthernet0/0/0       [administratively down/down]
+        FE80::1
+        2001:DB8:ACAD:A::1
+    GigabitEthernet0/0/1       [administratively down/down]
+        FE80::1
+        2001:DB8:ACAD:1::1
+    GigabitEthernet0/0/2       [administratively down/down]
+    unassigned
+    Vlan1                      [administratively down/down]
+
+
+Какие группы многоадресной рассылки назначены интерфейсу G0/0?
+
+    R1#show  ipv6 interface g0/0/0
+      Joined group address(es):
+        FF02::1
+
+    
