@@ -60,7 +60,7 @@
     R1(config-line)#password cisco
     R1(config-line)#login
     R1(config-line)#transport input telnet 
-    R1(config-line)#exec-timeout
+    R1(config-line)#exec-timeout 5
     R1#copy running-config startup-config 
         
 
