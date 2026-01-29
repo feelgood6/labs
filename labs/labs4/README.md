@@ -305,4 +305,4 @@
 
 **2001:0db8:acad:0000(Сеть)**:0000:0000:aaaa:1234(хосты)
 
-#### Выгрузка из CPT [здесь]()
+#### Выгрузка из CPT [здесь](https://github.com/feelgood6/labs/blob/172bdb762d4d6aa666f3e9bdb160daaadc76fc76/labs/labs4/labs4.pkt)
