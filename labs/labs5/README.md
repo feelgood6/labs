@@ -151,7 +151,7 @@
 
 
 
-
+#### Выгрузка из CPT [здесь](https://github.com/feelgood6/labs/blob/172bdb762d4d6aa666f3e9bdb160daaadc76fc76/labs/labs4/labs4.pkt)
 
 
 
