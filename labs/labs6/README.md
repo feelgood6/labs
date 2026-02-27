@@ -293,9 +293,140 @@ c.	Проверка транкинга.
 
 ## Часть 4. Настройка маршрутизации между сетями VLAN
 
+##### Шаг 1. Настройте маршрутизатор.
+
+a.	При необходимости активируйте интерфейс G0/0/1 на маршрутизаторе.
+
+После включения интерфейса проверил шнтерфейсы транков на S1
+
+    S1#show interfaces tr
+    Port        Mode         Encapsulation  Status        Native vlan
+    Fa0/1       on           802.1q         trunking      1000
+    Fa0/5       on           802.1q         trunking      1000
+
+Поднялся транк на пятом порту.
+
+b.	Настройте подинтерфейсы для каждой VLAN, как указано в таблице IP-адресации. Все подинтерфейсы используют инкапсуляцию 802.1Q. Убедитесь, что подинтерфейсу для native VLAN не назначен IP-адрес. Включите описание для каждого подинтерфейса.
+
+    R1(config)#int g0/0/1.10
+    R1(config-subif)#Description Default Gateway for Vlan 10
+    1(config-subif)#encapsulation dot1Q 10
+    R1(config-subif)#ip address 192.168.10.1 255.255.255.0
+    R1(config-subif)#ex
+    
+    R1(config)#int g0/0/1.20
+    R1(config-subif)#Description Default Gateway for Vlan 20
+    R1(config-subif)#encapsulation dot1Q 20
+    R1(config-subif)#ip address 192.168.20.1 255.255.255.0
+    R1(config-subif)#ex
+
+    R1(config)#int g0/0/1.30
+    R1(config-subif)#Description Default Gateway for Vlan 30
+    R1(config-subif)#encapsulation dot1Q 30
+    R1(config-subif)#ip address 192.168.30.1 255.255.255.0
+    R1(config-subif)#ex
+
+    R1(config)#int g0/0/1.10
+    R1(config-subif)#Description Native Vlan 1000
+    R1(config-subif)#encapsulation dot1Q 1000
+    R1(config-subif)#ex
 
 
 
 
+Забыл назначить шлюз по умолчанию на S1 и S2
+
+    S1(config)#ip default-gateway 192.168.10.1
+
+    
+c.	Убедитесь, что вспомогательные интерфейсы работают
+
+    R1#show ip interface brief 
+    Interface              IP-Address      OK? Method Status                Protocol 
+    GigabitEthernet0/0/0   unassigned      YES NVRAM  administratively down down 
+    GigabitEthernet0/0/1   unassigned      YES NVRAM  up                    up 
+    GigabitEthernet0/0/1.10192.168.10.1    YES manual up                    up 
+    GigabitEthernet0/0/1.20192.168.20.1    YES manual up                    up 
+    GigabitEthernet0/0/1.30192.168.30.1    YES manual up                    up 
+    GigabitEthernet0/0/1.1000unassigned      YES unset  up                    up 
+    GigabitEthernet0/0/2   unassigned      YES NVRAM  administratively down down 
+    Vlan1                  unassigned      YES unset  administratively down down
+    R1#
 
 
+## Часть 5. Проверьте, работает ли маршрутизация между VLAN
+
+##### Шаг 1. Выполните следующие тесты с PC-A. Все должно быть успешно. 
+
+a.	Отправьте эхо-запрос с PC-A на шлюз по умолчанию.
+    C:\>ping 192.168.10.1
+
+    Pinging 192.168.10.1 with 32 bytes of data:
+
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+
+    Ping statistics for 192.168.10.1:
+        Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+b.	Отправьте эхо-запрос с PC-A на PC-B.
+
+    C:\>ping 192.168.30.3
+
+    Pinging 192.168.30.3 with 32 bytes of data:
+
+    Request timed out.
+    Reply from 192.168.30.3: bytes=32 time<1ms TTL=127
+    Reply from 192.168.30.3: bytes=32 time<1ms TTL=127
+    Reply from 192.168.30.3: bytes=32 time<1ms TTL=127
+
+    Ping statistics for 192.168.30.3:
+        Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+c.	Отправьте команду ping с компьютера PC-A на коммутатор S2.
+
+    C:\>ping 192.168.10.12
+
+    Pinging 192.168.10.12 with 32 bytes of data:
+
+    Request timed out.
+    Request timed out.
+    Reply from 192.168.10.12: bytes=32 time<1ms TTL=254
+    Reply from 192.168.10.12: bytes=32 time<1ms TTL=254
+
+    Ping statistics for 192.168.10.12:
+        Packets: Sent = 4, Received = 2, Lost = 2 (50% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
+    
+##### Шаг 2. Пройдите следующий тест с PC-B
+
+В окне командной строки на PC-B выполните команду tracert на адрес PC-A.
+
+    C:\>tracert 192.168.20.3
+
+    Tracing route to 192.168.20.3 over a maximum of 30 hops: 
+
+      1   0 ms      0 ms      0 ms      192.168.30.1
+      2   0 ms      0 ms      0 ms      192.168.20.3
+
+    Trace complete.
+
+Вопрос:
+Какие промежуточные IP-адреса отображаются в результатах?
+
+Промежуточный IP 192.168.30.1 - это IP подинтерфейса на роутере, тк компьтеры в разных Vlan, они напрямую друг друга не видят, общараются к роутеру.
+
+
+Выгрузка из CPT (Здесь)[]
+
+
+
+
+    
