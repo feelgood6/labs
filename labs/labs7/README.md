@@ -294,7 +294,7 @@ STP смотрит стоимость портов (Path Cost)
 
 
 
-Выгрузка из CPT [Здесь]()
+Выгрузка из CPT [Здесь](https://github.com/feelgood6/labs/blob/76c34c16e588e97426c889c8df6cb394831c9e12/labs/labs7/labs7.pkt)
 
 
 
