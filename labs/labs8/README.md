@@ -32,18 +32,92 @@
 ##### Шаг 4. Настройка интерфейсов и маршрутизации для обоих маршрутизаторов.
 
 
+
 ### Часть 2. Проверка назначения адреса SLAAC от R1
 
+Откуда взялась часть адреса с идентификатором хоста?
+Она сгенерирована автоматически на основе MAC-адреса сетевой карты с использованием механизма EUI-64
 
 ### Часть 3. Настройка и проверка сервера DHCPv6 на R1
 
 ##### Шаг 1. Более подробно изучите конфигурацию PC-A.
 
-##### Шаг 2. Настройте R1 для предоставления DHCPv6 без состояния для PC-A.
 
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: 
+       Physical Address................: 0001.637E.E4D6
+       Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
+       IPv6 Address....................: 2001:DB8:ACAD:1:201:63FF:FE7E:E4D6
+       Autoconfiguration IP Address....: 169.254.228.214
+       Subnet Mask.....................: 255.255.0.0
+       Default Gateway.................: FE80::1
+                                         0.0.0.0
+       DHCP Servers....................: 0.0.0.0
+       DHCPv6 IAID.....................: 
+       DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
+       DNS Servers.....................: ::
+                                         0.0.0.0
+
+Почему то вывод другой, не такой как в примере, может где то ошибся, дальше буду смотреть.
+
+##### Шаг 2. Настройте R1 для предоставления DHCPv6 без состояния для PC-A.
+Прописываем настройки
+
+    R1(config)# ipv6 dhcp pool R1-STATELESS
+    R1(config-dhcp)# dns-server 2001:db8:acad::254
+    R1(config-dhcp)# domain-name STATELESS.com
+    R1(config)#exit
+    R1(config)# interface g0/0/1
+    R1(config-if)# ipv6 nd other-config-flag 
+    R1(config-if)# ipv6 dhcp server R1-STATELESS
+
+Сохраняем, перезапускаем ПК
+
+C:\>ipconfig /all
+
+FastEthernet0 Connection:(default port)
+
+   Connection-specific DNS Suffix..: STATELESS.com 
+   Physical Address................: 0001.637E.E4D6
+   Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
+   IPv6 Address....................: 2001:DB8:ACAD:1:201:63FF:FE7E:E4D6
+   IPv4 Address....................: 0.0.0.0
+   Subnet Mask.....................: 0.0.0.0
+   Default Gateway.................: FE80::1
+                                     0.0.0.0
+   DHCP Servers....................: 0.0.0.0
+   DHCPv6 IAID.....................: 869353894
+   DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
+   DNS Servers.....................: 2001:DB8:ACAD::254
+                                     0.0.0.0
+
+появился адрес DNS
+
+Пингуем G0/1 R2
+
+   C:\>ping 2001:db8:acad:3::1
+
+   Pinging 2001:db8:acad:3::1 with 32 bytes of data:
+
+   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+
+Все хорошо.
 
 
 ### Часть 4. Настройка сервера DHCPv6 с сохранением состояния на R1
+
+   R1(config)# ipv6 dhcp pool R2-STATEFUL
+   R1(config-dhcp)# address prefix 2001:db8:acad:3:aaa::/80
+   R1(config-dhcp)# dns-server 2001:db8:acad::254
+   R1(config-dhcp)# domain-name STATEFUL.com
+   R1(config)# interface g0/0/0
+   R1(config-if)# ipv6 dhcp server R2-STATEFUL
+
+
 
 ### Часть 5. Настройка и проверка ретрансляции DHCPv6 на R2.
 
