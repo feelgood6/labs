@@ -96,35 +96,36 @@
 
 Пингуем G0/1 R2
 
-   C:\>ping 2001:db8:acad:3::1
 
-   Pinging 2001:db8:acad:3::1 with 32 bytes of data:
+    C:\>ping 2001:db8:acad:3::1
 
-   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
-   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
-   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
-   Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+    Pinging 2001:db8:acad:3::1 with 32 bytes of data:
+
+    Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:3::1: bytes=32 time<1ms TTL=254
 
 Все хорошо.
 
 
 ### Часть 4. Настройка сервера DHCPv6 с сохранением состояния на R1
 
-   R1(config)# ipv6 dhcp pool R2-STATEFUL
-   R1(config-dhcp)# address prefix 2001:db8:acad:3:aaa::/80
-   R1(config-dhcp)# dns-server 2001:db8:acad::254
-   R1(config-dhcp)# domain-name STATEFUL.com
-   R1(config)# interface g0/0/0
-   R1(config-if)# ipv6 dhcp server R2-STATEFUL
+    R1(config)# ipv6 dhcp pool R2-STATEFUL
+    R1(config-dhcp)# address prefix 2001:db8:acad:3:aaa::/80
+    R1(config-dhcp)# dns-server 2001:db8:acad::254
+    R1(config-dhcp)# domain-name STATEFUL.com
+    R1(config)# interface g0/0/0
+    R1(config-if)# ipv6 dhcp server R2-STATEFUL
 
 
 
 ### Часть 5. Настройка и проверка ретрансляции DHCPv6 на R2.
 
 ##### Шаг 1. Включите PC-B и проверьте адрес SLAAC, который он генерирует.
-   C:\>ipconfig /all
+    C:\>ipconfig /all
 
-   FastEthernet0 Connection:(default port)
+    FastEthernet0 Connection:(default port)
 
       Connection-specific DNS Suffix..: 
       Physical Address................: 0060.7016.27C2
@@ -143,23 +144,23 @@
 ##### Шаг 2. Настройте R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1.
 Так как relay в CPT не реализован, то настраиваем Stateful DHCPv6 на R2
 
-   R2(config)#ipv6 dhcp pool R2-STATEFUL
-   R2(config-dhcpv6)#address prefix 2001:db8:acad:3::/64
-   R2(config-dhcpv6)#dns-server 2001:db8:acad::254
-   R2(config-dhcpv6)#domain-name STATEFUL.com
-   R2(config-dhcpv6)#ex
+    R2(config)#ipv6 dhcp pool R2-STATEFUL
+    R2(config-dhcpv6)#address prefix 2001:db8:acad:3::/64
+    R2(config-dhcpv6)#dns-server 2001:db8:acad::254
+    R2(config-dhcpv6)#domain-name STATEFUL.com
+    R2(config-dhcpv6)#ex
 
-   R2(config)#int g0/0/1
-   R2(config-if)#ipv6 nd managed-config-flag
-   R2(config-if)#ipv6 dhcp server R2-STATEFUL
+    R2(config)#int g0/0/1
+    R2(config-if)#ipv6 nd managed-config-flag
+    R2(config-if)#ipv6 dhcp server R2-STATEFUL
    
 ##### Шаг 3. Попытка получить адрес IPv6 из DHCPv6 на PC-B.
 
 Перезапустил компьютер
 
-   C:\>ipconfig /all
+    C:\>ipconfig /all
 
-   FastEthernet0 Connection:(default port)
+    FastEthernet0 Connection:(default port)
 
       Connection-specific DNS Suffix..: STATEFUL.com 
       Physical Address................: 0060.7016.27C2
@@ -180,18 +181,18 @@
 
 c.	Проверьте подключение с помощью пинга IP-адреса интерфейса R0 G0/0/1.(как я понял, подключения к R1)
 
-   C:\>ping 2001:db8:acad:1::1
+    C:\>ping 2001:db8:acad:1::1
 
-   Pinging 2001:db8:acad:1::1 with 32 bytes of data:
+    Pinging 2001:db8:acad:1::1 with 32 bytes of data:
 
-   Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
-   Reply from 2001:DB8:ACAD:1::1: bytes=32 time=5ms TTL=254
-   Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
-   Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:1::1: bytes=32 time=5ms TTL=254
+    Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
+    Reply from 2001:DB8:ACAD:1::1: bytes=32 time<1ms TTL=254
 
-   Ping statistics for 2001:DB8:ACAD:1::1:
+    Ping statistics for 2001:DB8:ACAD:1::1:
        Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
-   Approximate round trip times in milli-seconds:
+    Approximate round trip times in milli-seconds:
        Minimum = 0ms, Maximum = 5ms, Average = 1ms
 
 Выгрузка из CPT [Здесь](https://github.com/feelgood6/labs/blob/bf20f823a50832df5c10d7f77b802b202a3fe317/labs/labs8/labs8.pkt)
