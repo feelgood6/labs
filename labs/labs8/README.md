@@ -59,7 +59,7 @@
        DNS Servers.....................: ::
                                          0.0.0.0
 
-Почему то вывод другой, не такой как в примере, может где то ошибся, дальше буду смотреть.
+Почему то вывод другой, не такой как в примере,в DNS ничего нет, может где то ошибся, дальше буду смотреть.
 
 ##### Шаг 2. Настройте R1 для предоставления DHCPv6 без состояния для PC-A.
 Прописываем настройки
@@ -74,25 +74,25 @@
 
 Сохраняем, перезапускаем ПК
 
-C:\>ipconfig /all
+    C:\>ipconfig /all
 
-FastEthernet0 Connection:(default port)
+    FastEthernet0 Connection:(default port)
 
-   Connection-specific DNS Suffix..: STATELESS.com 
-   Physical Address................: 0001.637E.E4D6
-   Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
-   IPv6 Address....................: 2001:DB8:ACAD:1:201:63FF:FE7E:E4D6
-   IPv4 Address....................: 0.0.0.0
-   Subnet Mask.....................: 0.0.0.0
-   Default Gateway.................: FE80::1
-                                     0.0.0.0
-   DHCP Servers....................: 0.0.0.0
-   DHCPv6 IAID.....................: 869353894
-   DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
-   DNS Servers.....................: 2001:DB8:ACAD::254
-                                     0.0.0.0
+       Connection-specific DNS Suffix..: STATELESS.com 
+       Physical Address................: 0001.637E.E4D6
+       Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
+       IPv6 Address....................: 2001:DB8:ACAD:1:201:63FF:FE7E:E4D6
+       IPv4 Address....................: 0.0.0.0
+       Subnet Mask.....................: 0.0.0.0
+       Default Gateway.................: FE80::1
+                                         0.0.0.0
+       DHCP Servers....................: 0.0.0.0
+       DHCPv6 IAID.....................: 869353894
+       DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
+       DNS Servers.....................: 2001:DB8:ACAD::254
+                                         0.0.0.0
 
-появился адрес DNS
+появился адрес DNS, может так и надо
 
 Пингуем G0/1 R2
 
