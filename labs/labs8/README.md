@@ -122,8 +122,32 @@ FastEthernet0 Connection:(default port)
 ### Часть 5. Настройка и проверка ретрансляции DHCPv6 на R2.
 
 ##### Шаг 1. Включите PC-B и проверьте адрес SLAAC, который он генерирует.
+   C:\>ipconfig /all
+
+   FastEthernet0 Connection:(default port)
+
+      Connection-specific DNS Suffix..: 
+      Physical Address................: 0060.7016.27C2
+      Link-local IPv6 Address.........: FE80::260:70FF:FE16:27C2
+      IPv6 Address....................: 2001:DB8:ACAD:3:260:70FF:FE16:27C2
+      Autoconfiguration IP Address....: 169.254.39.194
+      Subnet Mask.....................: 255.255.0.0
+      Default Gateway.................: FE80::1
+                                        0.0.0.0
+      DHCP Servers....................: 0.0.0.0
+      DHCPv6 IAID.....................: 
+      DHCPv6 Client DUID..............: 00-01-00-01-86-26-C9-A0-00-60-70-16-27-C2
+      DNS Servers.....................: ::
+                                        0.0.0.0
 
 ##### Шаг 2. Настройте R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1.
+Так как relay в CPT не реализован, то настраиваем Stateful DHCPv6 на R2
+
+   R2(config)#ipv6 dhcp pool R2-STATEFUL
+   R2(config-dhcpv6)#address prefix 2001:db8:acad:3::/64
+   R2(config-dhcpv6)#dns-server 2001:db8:acad::254
+   R2(config-dhcpv6)#domain-name STATEFUL.com
+   R2(config-dhcpv6)#ex
 
 ##### Шаг 3. Попытка получить адрес IPv6 из DHCPv6 на PC-B.
 
