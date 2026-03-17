@@ -109,6 +109,11 @@ c.	Одна подсеть «Подсеть C», поддерживающая 12
 
 По заданию только сейчас понял, что нужно было сначала расчитать и записать в таблицу, а потом делать настройки. Так наверное было бы проще, потому что тут сильно путался и терялся между всем этим, так что настройки впишу уже потом, когда дойду до нужного пункта.
 
+Итоговая таблица адресации
+
+<img width="694" height="351" alt="image" src="https://github.com/user-attachments/assets/a0f5c050-c49d-41a2-82f6-3c924504a19b" />
+
+
 ##### Шаг 2.	Создайте сеть согласно топологии.
 Сеть создана
 
@@ -216,8 +221,71 @@ e.	Сохраните текущую конфигурацию в файл заг
 ##### Шаг 7.	Создайте сети VLAN на коммутаторе S1.
 
 a.	Создайте необходимые VLAN на коммутаторе 1 и присвойте им имена из приведенной выше таблицы.
+b.	Настройте и активируйте интерфейс управления на S1 (VLAN 200), используя второй IP-адрес из подсети, рассчитанный ранее. Кроме того установите шлюз по умолчанию на S1.
+
+    S1(config)#vlan 100
+    S1(config-vlan)#name Clients
+    S1(config-vlan)#ex
+
+    S1(config)#vlan 200
+    S1(config-vlan)#name Menegment
+    S1(config-vlan)#ex
+
+    S1(config)#vlan 999
+    S1(config-vlan)#name Parking_Lot
+    S1(config-vlan)#ex
+
+    S1(config)#vlan 1000
+    S1(config-vlan)#name Native
+    S1(config-vlan)#ex
+
+    S1(config)#int vlan 200
+    S1(config-if)#no sh
+    S1(config-if)#ip address 192.168.1.66 255.255.255.224
+    S1(config-vlan)#ex
+
+    S1(config)#ip default-gateway 192.168.1.65
 
 
+c.	Настройте и активируйте интерфейс управления на S2 (VLAN 1), используя второй IP-адрес из подсети, рассчитанный ранее. Кроме того, установите шлюз по умолчанию на S2
+
+
+    S2(config)#int vlan 1
+    S2(config-if)#no sh
+    S2(config-if)#ip address 192.168.1.98 255.255.255.240
+    S2(config-if)#ex
+
+    S2(config)#ip default-gateway 192.168.1.97
+
+
+
+d.	Назначьте все неиспользуемые порты S1 VLAN Parking_Lot, настройте их для статического режима доступа и административно деактивируйте их. На S2 административно деактивируйте все неиспользуемые порты.
+
+    S1(config)#int range f0/1-4,f0/7-24,g0/1-2
+    S1(config-if-range)#switchport mode access 
+    S1(config-if-range)#switchport access vlan 999
+    S1(config-if-range)#shutdown 
+
+
+
+S2
+
+    S2(config)#int range f0/1-4,f0/6-17,f0/19-24, g0/1-2
+    S2(config-if-range)#sh
+
+
+
+
+##### Шаг 8.	Назначьте сети VLAN соответствующим интерфейсам коммутатора.
+
+На S1
+
+    S1(config)#int f0/6
+    S1(config-if)#switchport mode access 
+    S1(config-if)#switchport access vlan 100
+
+
+На S1 f0/5 и на S2 f0/18 в и так Vlan 1 потому что они там по умолчанию были.
 
 
 
