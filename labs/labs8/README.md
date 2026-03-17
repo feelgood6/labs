@@ -48,11 +48,172 @@ a.	Одна подсеть «Подсеть A», поддерживающая 58
 
 Нам нужна 26 маска
 
+Первый адрес 192.168.1.1 маска 255.255.255.192
+
+Даем ip интерфейсу
+
+    R1(config)#int g0/0/1
+    R1(config-if)#no sh
+    
+    R1(config)#int g0/0/1.100
+    R1(config-subif)#encapsulation dot1Q 100
+    R1(config-subif)#ip address 192.168.1.1 255.255.255.192
+    R1(config-subif)#no sh
+
+b.	Одна подсеть «Подсеть B», поддерживающая 28 хостов (управляющая VLAN на R1). 
+Подсеть B:
+
+Формула 2^n - 2 >= 28 -> 2^5 - 2 = 34
+
+Нужна 27 маска
+
+Первый адрес 192.168.1.65 маска 255.255.255.224
+
+    R1(config)#int g0/0/0.200
+    R1(config-subif)#encapsulation dot1Q 200
+    R1(config-subif)#ip address 192.168.1.65 255.255.255.224
+
+
+Заходим на S1, назначаем vlan 100 второй адрес сети 192.168.1.64/27 и сразу создаем все vlan
+
+
+    S1(config)#vlan 200
+    S1(config-vlan)#name Management
+    S1(config-vlan)#int vlan 200
+    S1(config-if)#ip address 192.168.1.66 255.255.255.224
+    
+    
+    S1(config)#vlan 100
+    S1(config-vlan)#name Clients
+    S1(config-vlan)#ex
+    
+    S1(config)#vlan 999
+    S1(config-vlan)#name Parking_Lot
+    S1(config-vlan)#ex
+    
+    S1(config)#vlan 1000
+    S1(config-vlan)#name Native
+    S1(config-vlan)#ex
+
+
+c.	Одна подсеть «Подсеть C», поддерживающая 12 узлов (клиентская сеть на R2).
+Подсеть C:
+Запишите первый IP-адрес в таблице адресации для R2 G0/0/1.
+
+Формула 2^n - 2 >= 14 -> 2^4 - 2 = 14
+
+Нужна /28 или 255.255.255.240 , адрес сети 192.168.1.96
+
+Первый адрес сети будет 192.168.1.97 255.255.255.240
+
+
+По заданию только сейчас понял, что нужно было сначала расчитать и записать в таблицу, а потом делать настройки. Так наверное было бы проще, потому что тут сильно путался и терялся между всем этим, так что настройки впишу уже потом, когда дойду до нужного пункта.
+
+##### Шаг 2.	Создайте сеть согласно топологии.
+Сеть создана
+
+##### Шаг 3.	Произведите базовую настройку маршрутизаторов.
+
+##### Шаг 4.	Настройка маршрутизации между сетями VLAN на маршрутизаторе R1
+
+a.	Активируйте интерфейс G0/0/1 на маршрутизаторе.
+Готово
+
+b.	Настройте подинтерфейсы для каждой VLAN в соответствии с требованиями таблицы IP-адресации. Все субинтерфейсы используют инкапсуляцию 802.1Q и назначаются первый полезный адрес из вычисленного пула IP-адресов. Убедитесь, что подинтерфейсу для native VLAN не назначен IP-адрес. Включите описание для каждого подинтерфейса.
+
+
+Я уже прописывал настройки для G0/0/1.100, но пропишу еще раз, чтобы перепроверить себя, забыл добавить комментарии
+
+    R1(config)#int g0/0/1.100
+    R1(config-subif)#description Clients
+    R1(config-subif)#encapsulation dot1Q 100
+    R1(config-subif)#ip address 192.168.1.1 255.255.255.192
+
+    R1(config-subif)#ip address 192.168.1.65 255.255.255.224
+    % 192.168.1.64 overlaps with GigabitEthernet0/0/0.200
+
+Нашел ошибку, ip назначил интерфейсу g0/0/0.200
+
+    R1(config)#int g0/0/0.200
+    R1(config-subif)#no ip add
+    R1(config-subif)#no ip address 192.168.1.65 255.255.255.224
+    R1(config-subif)#ex
+
+    R1(config)#int g0/0/1.200
+    R1(config-subif)#ip address 192.168.1.65 255.255.255.224
+    R1(config-subif)#
+
+    R1(config)#int g0/0/1.1000
+    R1(config-subif)#description Native
+    R1(config-subif)#encapsulation dot1Q 1000
+
+
+c.	Убедитесь, что вспомогательные интерфейсы работают.
+
+    R1#show ip int brief 
+    Interface              IP-Address      OK? Method Status                Protocol 
+    GigabitEthernet0/0/0   unassigned      YES unset  up                    up 
+    GigabitEthernet0/0/0.200unassigned      YES manual administratively down down 
+    GigabitEthernet0/0/1   unassigned      YES unset  up                    up 
+    GigabitEthernet0/0/1.100192.168.1.1     YES manual up                    up 
+    GigabitEthernet0/0/1.200192.168.1.65    YES manual up                    up 
+    GigabitEthernet0/0/1.1000unassigned      YES unset  up                    up 
+    GigabitEthernet0/0/2   unassigned      YES unset  administratively down down 
+    Vlan1                  unassigned      YES unset  administratively down down
+
+
+Увидел GigabitEthernet0/0/0.200, пока не знаю как его убрать, сейчас его просто выключил.
 
 
 
+##### Шаг 5.	Настройте G0/1 на R2, затем G0/0/0 и статическую маршрутизацию для обоих маршрутизаторов
+
+a.	Настройте G0/0/1 на R2 с первым IP-адресом подсети C, рассчитанным ранее.
+
+    R2(config)#int g0/0/1
+    R2(config-if)#ip address 192.168.1.97 255.255.255.240
+    R2(config-if)#no sh
+
+b.	Настройте интерфейс G0/0/0 для каждого маршрутизатора на основе приведенной выше таблицы IP-адресации. 
+c.	Настройте маршрут по умолчанию на каждом маршрутизаторе, указываемом на IP-адрес G0/0/0 на другом маршрутизаторе.
+
+    R2(config)#int g0/0/0
+    R2(config-if)#ip address 10.0.0.2 255.255.255.252
+    R2(config-if)#no sh
+    R2(config)#ip default-gateway 10.0.0.1
+
+    R1(config)#int g0/0/0
+    R1(config-if)#ip address 10.0.0.1 255.255.255.252
+    R1(config-if)#no sh
+    R1(config)#ip default-gateway 10.0.0.2
 
 
+d.	Убедитесь, что статическая маршрутизация работает с помощью пинга до адреса G0/0/1 R2 от R1.
+
+    R1#ping 10.0.0.2
+
+    Type escape sequence to abort.
+    Sending 5, 100-byte ICMP Echos to 10.0.0.2, timeout is 2 seconds:
+    .!!!!
+    Success rate is 80 percent (4/5), round-trip min/avg/max = 0/0/0 ms
+
+
+
+e.	Сохраните текущую конфигурацию в файл загрузочной конфигурации.
+
+    wr m
+
+
+
+##### Шаг 6.	Настройте базовые параметры каждого коммутатора.
+
+Настроил, только время не ставил
+
+    S1#clock set 11:24:00 Mar 17 2026
+
+
+
+##### Шаг 7.	Создайте сети VLAN на коммутаторе S1.
 
 
 
