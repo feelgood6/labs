@@ -34,7 +34,50 @@
 
 ### Часть 2. Проверка назначения адреса SLAAC от R1
 
+До SLAAC
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: 
+       Physical Address................: 00E0.A3AA.D72E
+       Link-local IPv6 Address.........: FE80::2E0:A3FF:FEAA:D72E
+       IPv6 Address....................: ::
+       IPv4 Address....................: 0.0.0.0
+       Subnet Mask.....................: 0.0.0.0
+       Default Gateway.................: ::
+                                     0.0.0.0
+       DHCP Servers....................: 0.0.0.0
+       DHCPv6 IAID.....................: 
+       DHCPv6 Client DUID..............: 00-01-00-01-69-6D-04-01-00-E0-A3-AA-D7-2E
+       DNS Servers.....................: ::
+                                         0.0.0.0
+
+
+После SLAAC
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: 
+       Physical Address................: 00E0.A3AA.D72E
+       Link-local IPv6 Address.........: FE80::2E0:A3FF:FEAA:D72E
+       IPv6 Address....................: 2001:DB8:ACAD:2:2E0:A3FF:FEAA:D72E
+       IPv4 Address....................: 0.0.0.0
+       Subnet Mask.....................: 0.0.0.0
+       Default Gateway.................: FE80::1
+                                     0.0.0.0
+       DHCP Servers....................: 0.0.0.0
+       DHCPv6 IAID.....................: 
+       DHCPv6 Client DUID..............: 00-01-00-01-69-6D-04-01-00-E0-A3-AA-D7-2E
+       DNS Servers.....................: ::
+                                     0.0.0.0
+
+                                     
 Откуда взялась часть адреса с идентификатором хоста?
+
 Она сгенерирована автоматически на основе MAC-адреса сетевой карты с использованием механизма EUI-64
 
 ### Часть 3. Настройка и проверка сервера DHCPv6 на R1
