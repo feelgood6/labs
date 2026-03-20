@@ -288,6 +288,267 @@ S2
 На S1 f0/5 и на S2 f0/18 в и так Vlan 1 потому что они там по умолчанию были.
 
 
+##### Шаг 9.	Вручную настройте интерфейс S1 F0/5 в качестве транка 802.1Q.
+
+    S1(config-if)#switchport mode trunk 
+    S1(config-if)#switchport trunk native 1000
+    S1(config-if)#switchport trunk native vlan 1000
+    S1(config-if)#switchport trunk allowed vlan 100,200,1000
+
+Какой IP-адрес был бы у ПК, если бы он был подключен к сети с помощью DHCP?
+
+PC-A в подсети А, то есть в IP выдавался бы в диапазане 192.168.1.1 – 192.168.1.62.
+
+### Часть 2.	Настройка и проверка двух серверов DHCPv4 на R1
+
+
+##### Шаг 1.	Настройте R1 с пулами DHCPv4 для двух поддерживаемых подсетей. Ниже приведен только пул DHCP для подсети A
+
+
+a.	Исключите первые пять используемых адресов из каждого пула адресов.
+
+    R1(config)#ip dhcp excluded-address 192.168.1.1 192.168.1.5
+
+b.	Создайте пул DHCP (используйте уникальное имя для каждого пула).
+
+    R1(config)#ip dhcp pool subnetA
+
+c.	Укажите сеть, поддерживающую этот DHCP-сервер.
+
+    R1(dhcp-config)#network 192.168.1.0 255.255.255.192
+
+d.	В качестве имени домена укажите CCNA-lab.com.
+
+    R1(dhcp-config)#domain-name CCNA-lab.com
+
+e.	Настройте соответствующий шлюз по умолчанию для каждого пула DHCP.
+
+    R1(dhcp-config)#default-router 10.0.0.2
+    
+f.	Настройте время аренды на 2 дня 12 часов и 30 минут.
+
+    Не нашел как сделать эту компанду, нашел lease , но она не работает.
+
+
+g.	Затем настройте второй пул DHCPv4, используя имя пула R2_Client_LAN и вычислите сеть, маршрутизатор по умолчанию, и используйте то же имя домена и время аренды, что и предыдущий пул DHCP.
+
+    R2(config)#ip dhcp excluded-address 192.168.1.97 192.168.1.101
+    R2(dhcp-config)#network 192.168.1.96 255.255.255.240
+    R2(dhcp-config)#default-router 10.0.0.1
+    R2(dhcp-config)#domain-name CCNA-lab.com
+    
+
+### Шаг 3.	Проверка конфигурации сервера DHCPv4
+
+
+На R1
+
+    R1#show ip dhcp pool 
+
+    Pool subnetA :
+     Utilization mark (high/low)    : 100 / 0
+     Subnet size (first/next)       : 0 / 0 
+     Total addresses                : 62
+     Leased addresses               : 1
+     Excluded addresses             : 1
+     Pending event                  : none
+
+     1 subnet is currently in the pool
+     Current index        IP address range                    Leased/Excluded/Total
+     192.168.1.1          192.168.1.1      - 192.168.1.62      1    / 1     / 62
+
+
+    R1#show ip dhcp binding 
+    IP address       Client-ID/              Lease expiration        Type
+                 Hardware address
+    192.168.1.6      0001.637E.E4D6           --                     Automatic
+
+
+Команда R1#show ip dhcp server statistic не выполняется
+
+
+
+На R2
+
+    
+    R2#show ip dhcp pool 
+
+    Pool R2_Client_LAN :
+     Utilization mark (high/low)    : 100 / 0
+     Subnet size (first/next)       : 0 / 0 
+     Total addresses                : 14
+     Leased addresses               : 1
+     Excluded addresses             : 3
+     Pending event                  : none
+
+     1 subnet is currently in the pool
+     Current index        IP address range                    Leased/Excluded/Total
+     192.168.1.97         192.168.1.97     - 192.168.1.110     1    / 3     / 14
+
+
+    R2#show ip dhcp binding 
+    IP address       Client-ID/              Lease expiration        Type
+                     Hardware address
+    192.168.1.102    0060.7016.27C2           --                     Automatic
+
+
+
+
+### Шаг 4.	Попытка получить IP-адрес от DHCP на PC-A
+
+a.	Из командной строки компьютера PC-A выполните команду ipconfig /all.
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: 
+       Physical Address................: 0001.637E.E4D6
+       Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
+       IPv6 Address....................: ::
+       IPv4 Address....................: 192.168.1.6
+       Subnet Mask.....................: 255.255.255.192
+       Default Gateway.................: FE80::1
+                                     0.0.0.0
+       DHCP Servers....................: 192.168.1.1
+       DHCPv6 IAID.....................: 869353894
+       DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
+       DNS Servers.....................: 2001:DB8:ACAD::254
+                                     0.0.0.0
+
+
+
+b.	После завершения процесса обновления выполните команду ipconfig для просмотра новой информации об IP-адресе.
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: CCNA-lab.com
+       Physical Address................: 0001.637E.E4D6
+       Link-local IPv6 Address.........: FE80::201:63FF:FE7E:E4D6
+       IPv6 Address....................: ::
+       IPv4 Address....................: 192.168.1.6
+       Subnet Mask.....................: 255.255.255.192
+       Default Gateway.................: FE80::1
+                                         10.0.0.2
+       DHCP Servers....................: 192.168.1.1
+       DHCPv6 IAID.....................: 
+       DHCPv6 Client DUID..............: 00-01-00-01-10-E5-11-DC-00-01-63-7E-E4-D6
+       DNS Servers.....................: 2001:DB8:ACAD::254
+                                         0.0.0.0
+
+
+c.	Проверьте подключение с помощью пинга IP-адреса интерфейса R0 G0/0/1.
+
+
+    C:\>ping 10.0.0.1
+
+    Pinging 10.0.0.1 with 32 bytes of data:
+
+    Reply from 10.0.0.1: bytes=32 time<1ms TTL=255
+    Reply from 10.0.0.1: bytes=32 time<1ms TTL=255
+    Reply from 10.0.0.1: bytes=32 time<1ms TTL=255
+    Reply from 10.0.0.1: bytes=32 time<1ms TTL=255
+
+
+### Часть 3.	Настройка и проверка DHCP-ретрансляции на R2
+
+##### Шаг 1.	Настройка R2 в качестве агента DHCP-ретрансляции для локальной сети на G0/0/1
+
+
+R2(config-if)#ip helper-address 10.0.0.1
+
+
+
+##### Шаг 2.	Попытка получить IP-адрес от DHCP на PC-B
+
+a.	Из командной строки компьютера PC-B выполните команду ipconfig /all.
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: STATEFUL.com 
+       Physical Address................: 0060.7016.27C2
+       Link-local IPv6 Address.........: FE80::260:70FF:FE16:27C2
+       IPv6 Address....................: 2001:DB8:ACAD:3:8C94:6060:52CE:443C
+       IPv4 Address....................: 192.168.1.102
+       Subnet Mask.....................: 255.255.255.240
+       Default Gateway.................: FE80::1
+                                         0.0.0.0
+       DHCP Servers....................: 192.168.1.97
+       DHCPv6 IAID.....................: 923934055
+       DHCPv6 Client DUID..............: 00-01-00-01-86-26-C9-A0-00-60-70-16-27-C2
+       DNS Servers.....................: 2001:DB8:ACAD::254
+                                        0.0.0.0
+
+
+
+b.	После завершения процесса обновления выполните команду ipconfig для просмотра новой информации об IP-адресе.
+
+    C:\>ipconfig /all
+
+    FastEthernet0 Connection:(default port)
+
+       Connection-specific DNS Suffix..: CCNA-lab.com
+                                       : STATEFUL.com 
+       Physical Address................: 0060.7016.27C2
+       Link-local IPv6 Address.........: FE80::260:70FF:FE16:27C2
+       IPv6 Address....................: 2001:DB8:ACAD:3:AED1:904F:741B:6679
+       IPv4 Address....................: 192.168.1.102
+       Subnet Mask.....................: 255.255.255.240
+       Default Gateway.................: FE80::1
+                                         10.0.0.1
+       DHCP Servers....................: 192.168.1.97
+       DHCPv6 IAID.....................: 1765752206
+       DHCPv6 Client DUID..............: 00-01-00-01-86-26-C9-A0-00-60-70-16-27-C2
+       DNS Servers.....................: 2001:DB8:ACAD::254
+                                         0.0.0.0
+
+
+c.	Проверьте подключение с помощью пинга IP-адреса интерфейса R1 G0/0/1.
+
+
+    C:\>ping 192.168.1.1
+
+    Pinging 192.168.1.1 with 32 bytes of data:
+
+    Reply from 192.168.1.97: Destination host unreachable.
+    Reply from 192.168.1.97: Destination host unreachable.
+    Reply from 192.168.1.97: Destination host unreachable.
+    Reply from 192.168.1.97: Destination host unreachable.
+
+Тут споткнулся, сначала подумал, что не астроен транк между s2 и r2, ностроил, но потом понял, что ПК-Б во vlan 1, должно работать и без транка. Вернул обратно настройки.
+
+Потом понял, то не настрона команда между роутерами. 
+
+    R1(config)#ip route 0.0.0.0 0.0.0.0 10.0.0.1
+    R2(config)# ip route 0.0.0.0 0.0.0.0 10.0.0.1
+
+
+Повторная проверка
+
+    C:\>ping 192.168.1.1
+
+    Pinging 192.168.1.1 with 32 bytes of data:
+
+    Request timed out.
+    Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+    Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+    Reply from 192.168.1.1: bytes=32 time<1ms TTL=254
+
+d.	Выполните show ip dhcp binding для R1 для проверки назначений адресов в DHCP.
+
+    R1#show ip dhcp binding
+    IP address       Client-ID/              Lease expiration        Type
+                     Hardware address
+    192.168.1.6      0001.637E.E4D6           --                     Automatic
+
+
+
+
+
 
 
 
