@@ -429,7 +429,11 @@ f.	Проверьте привязку отслеживания DHCP с помо
     00:01:42:92:CE:1E   192.168.10.10    0           dhcp-snooping  10    FastEthernet0/18
     Total number of bindings: 1
 
+##### Отключение 82 опции на двух коммутаторах
 
+    S1(config)#no ip dhcp snooping information option
+    
+    S2(config)#no ip dhcp snooping information option
 
 
 
