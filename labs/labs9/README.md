@@ -436,20 +436,162 @@ f.	Проверьте привязку отслеживания DHCP с помо
     S2(config)#no ip dhcp snooping information option
 
 
+##### Шаг 6. Реализация PortFast и BPDU Guard
+
+
+    S1(config)#int f0/6
+    S1(config-if)#spanning-tree portfast 
+    %Warning: portfast should only be enabled on ports connected to a single
+    host. Connecting hubs, concentrators, switches, bridges, etc... to this
+    interface  when portfast is enabled, can cause temporary bridging loops.
+    Use with CAUTION
+
+    %Portfast has been configured on FastEthernet0/6 but will only
+    have effect when the interface is in a non-trunking mode.
+    
+    S1(config-if)#spanning-tree bpduguard enable 
+  
+
+
+    S2(config)#int f0/18
+    S2(config-if)#spanning-tree portfast 
+    %Warning: portfast should only be enabled on ports connected to a single
+    host. Connecting hubs, concentrators, switches, bridges, etc... to this
+    interface  when portfast is enabled, can cause temporary bridging loops.
+    Use with CAUTION
+
+    %Portfast has been configured on FastEthernet0/18 but will only
+    have effect when the interface is in a non-trunking mode.
+
+    S2(config-if)#spanning-tree bpduguard enable 
+
+
+Убедитесь, что защита BPDU и PortFast включены на соответствующих портах. 
+
+    S1#show spanning-tree int f0/6 detail 
 
 
 
+    Port 6 (FastEthernet0/6) of VLAN0010 is designated forwarding
+      Port path cost 19, Port priority 128, Port Identifier 128.6
+      Designated root has priority 32778, address 000D.BD84.7AC4
+      Designated bridge has priority 32778, address 00D0.BCC9.844D
+      Designated port id is 128.6, designated path cost 19
+      Timers: message age 16, forward delay 0, hold 0
+      Number of transitions to forwarding state: 1
+      The port is in the portfast mode
+      Link type is point-to-point by default
+
+Про Bpdu guard is enabled не пишет, несколько раз прописал команду, так и должно быть в CPT?
+
+##### Шаг 7. Проверьте наличие сквозного ⁪подключения.
+
+На PC-A (192.168.10.11) пингуем R1 (192.168.10.1)
+
+    C:\>ping 192.168.10.1
+
+    Pinging 192.168.10.1 with 32 bytes of data:
+
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.1: bytes=32 time<1ms TTL=255
+
+    Ping statistics for 192.168.10.1:
+        Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+
+На PC-A (192.168.10.11) пингуем PC-B (192.168.10.10)
+
+    C:\>ping 192.168.10.10
+
+    Pinging 192.168.10.10 with 32 bytes of data:
+
+    Reply from 192.168.10.10: bytes=32 time<1ms TTL=128
+    Reply from 192.168.10.10: bytes=32 time<1ms TTL=128
+    Reply from 192.168.10.10: bytes=32 time<1ms TTL=128
+    Reply from 192.168.10.10: bytes=32 time<1ms TTL=128
+
+    Ping statistics for 192.168.10.10:
+        Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+    
+На PC-A (192.168.10.11) пингуем S1 (192.168.10.201)
+
+
+    C:\>ping 192.168.10.201
+
+    Pinging 192.168.10.201 with 32 bytes of data:
+
+    Request timed out.
+    Request timed out.
+    Request timed out.
+    Request timed out.
+
+    Ping statistics for 192.168.10.201:
+        Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+Не дает пингануть, хотя S2(192.168.10.202) видит
+
+    C:\>ping 192.168.10.202
+
+    Pinging 192.168.10.202 with 32 bytes of data:
+
+    Request timed out.
+    Reply from 192.168.10.202: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.202: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.202: bytes=32 time=5ms TTL=255
+
+    Ping statistics for 192.168.10.202:
+        Packets: Sent = 4, Received = 3, Lost = 1 (25% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 5ms, Average = 1ms
 
 
 
+<img width="1082" height="441" alt="image" src="https://github.com/user-attachments/assets/a4be8464-0d72-4067-8920-8bf535ecae5a" />
 
+Одинаковый IP на Vlan 10 у двух коммутаторах
 
+Исправляем
 
+    S1(config)#int vlan 10
+    S1(config-if)#ip address 192.168.10.201 255.255.255.0
 
+Проверяем
 
+    C:\>ping 192.168.10.201
 
+    Pinging 192.168.10.201 with 32 bytes of data:
 
+    Reply from 192.168.10.201: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.201: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.201: bytes=32 time<1ms TTL=255
+    Reply from 192.168.10.201: bytes=32 time<1ms TTL=255
 
+    Ping statistics for 192.168.10.201:
+        Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+    Approximate round trip times in milli-seconds:
+        Minimum = 0ms, Maximum = 0ms, Average = 0ms
 
+### Вопросы для повторения
 
+1.	С точки зрения безопасности порта на S2, почему нет значения таймера для оставшегося возраста в минутах, когда было сконфигурировано динамическое обучение - sticky?
 
+В этом случае, адрес записывается в running-config, он по сути становится статическим, так что не стареет.
+
+2.	Что касается безопасности порта на S2, если вы загружаете скрипт текущей конфигурации на S2, почему порту 18 на PC-B никогда не получит IP-адрес через DHCP?
+
+Потому что порт Fa0/18 настроен как недоверенный для DHCP snooping.
+После загрузки конфигурации коммутатор не имеет записи о привязке IP и MAC, поэтому DHCP-пакеты блокируются.
+
+3.	Что касается безопасности порта, в чем разница между типом абсолютного устаревания и типом устаревание по неактивности?
+
+Абсолютное устаревание - MAC удаляется в любом случае, когда заканчивается установленное время.
+По неактивности - MAC удаляется только, если устройство не активно в течении заданного времени.
+
+Выгруска из CPT (Здесь){}
