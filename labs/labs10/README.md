@@ -32,21 +32,21 @@ a.	Настройте адреса интерфейсов на каждом ма
 
 На R1
 
-  R1(config)#int g0/0/1
-  R1(config-if)#ip address 10.53.0.1 255.255.255.0
-  R1(config-if)#no sh
+    R1(config)#int g0/0/1
+    R1(config-if)#ip address 10.53.0.1 255.255.255.0
+    R1(config-if)#no sh
 
-  R1(config)#int loopback 1
-  R1(config-if)#ip address 172.16.1.1 255.255.255.0
+    R1(config)#int loopback 1
+    R1(config-if)#ip address 172.16.1.1 255.255.255.0
 
 На R2
 
-  R2(config)#int g0/0/1
-  R2(config-if)#ip address 10.53.0.2 255.255.255.0
-  R2(config-if)#no sh
+    R2(config)#int g0/0/1
+    R2(config-if)#ip address 10.53.0.2 255.255.255.0
+    R2(config-if)#no sh
 
-  R2(config)#int loopback1
-  R2(config-if)#ip address 192.168.1.1 255.255.255.0
+    R2(config)#int loopback1
+    R2(config-if)#ip address 192.168.1.1 255.255.255.0
   
   
 b.	Перейдите в режим конфигурации маршрутизатора OSPF, используя идентификатор процесса 56.
@@ -54,13 +54,13 @@ c.	Настройте статический идентификатор марш
 
 На R1
 
-  R1(config)#router ospf 56
-  R1(config-router)#router-id 1.1.1.1
+    R1(config)#router ospf 56
+    R1(config-router)#router-id 1.1.1.1
   
 На R2
 
-  R2(config)#router ospf 56
-  R2(config-router)#router-id 2.2.2.2
+    R2(config)#router ospf 56
+    R2(config-router)#router-id 2.2.2.2
 
 
 
@@ -68,61 +68,61 @@ d.	Настройте инструкцию сети для сети между R
 
 На R1
 
-  R1(config)#int g0/0/1
-  R1(config-if)#ip ospf 56 area 0
+    R1(config)#int g0/0/1
+    R1(config-if)#ip ospf 56 area 0
 
 На R2
 
-  R2(config)#int g0/0/1
-  R2(config-if)#ip ospf 56 area 0
+    R2(config)#int g0/0/1
+    R2(config-if)#ip ospf 56 area 0
 
 
 
 
 e.	Только на R2 добавьте конфигурацию, необходимую для объявления сети Loopback 1 в область OSPF 0.
 
-  R2(config)#int loopback1
-  R2(config-if)#ip ospf 56 area 0
+    R2(config)#int loopback1
+    R2(config-if)#ip ospf 56 area 0
 
 f.	Убедитесь, что OSPFv2 работает между маршрутизаторами. Выполните команду, чтобы убедиться, что R1 и R2 сформировали смежность.
 
-  R2#show ip ospf neighbor
+    R2#show ip ospf neighbor
 
 
-  Neighbor ID     Pri   State           Dead Time   Address         Interface
-  1.1.1.1           1   FULL/BDR        00:00:37    10.53.0.1       GigabitEthernet0/0/1
+    Neighbor ID     Pri   State           Dead Time   Address         Interface
+    1.1.1.1           1   FULL/BDR        00:00:37    10.53.0.1       GigabitEthernet0/0/1
 
-  R1#show ip ospf neighbor
+    R1#show ip ospf neighbor
 
 
-  Neighbor ID     Pri   State           Dead Time   Address         Interface
-  2.2.2.2           1   FULL/DR         00:00:30    10.53.0.2       GigabitEthernet0/0/1
+    Neighbor ID     Pri   State           Dead Time   Address         Interface
+    2.2.2.2           1   FULL/DR         00:00:30    10.53.0.2       GigabitEthernet0/0/1
   
 
   
 Вопрос:
 Какой маршрутизатор является DR? Какой маршрутизатор является BDR? Каковы критерии отбора?
 
-DR - тот, у кого выше Router ID
-BDR - второй по величине
+  DR - тот, у кого выше Router ID
+  BDR - второй по величине
 
-В моем случает, BDR - R1, DR - R2
+  В моем случает, BDR - R1, DR - R2
 
 
 g.	На R1 выполните команду show ip route ospf, чтобы убедиться, что сеть R2 Loopback1 присутствует в таблице маршрутизации. Обратите внимание, что поведение OSPF по умолчанию заключается в объявлении интерфейса обратной связи в качестве маршрута узла с использованием 32-битной маски.
 
-  R1#show ip route ospf
-       192.168.1.0/32 is subnetted, 1 subnets
-  O       192.168.1.1 [110/2] via 10.53.0.2, 00:01:30, GigabitEthernet0/0/1
+    R1#show ip route ospf
+         192.168.1.0/32 is subnetted, 1 subnets
+    O       192.168.1.1 [110/2] via 10.53.0.2, 00:01:30, GigabitEthernet0/0/1
 
 h.	Запустите Ping до  адреса интерфейса R2 Loopback 1 из R1. Выполнение команды ping должно быть успешным.
 
-  R1#ping 192.168.1.1
+    R1#ping 192.168.1.1
 
-  Type escape sequence to abort.
-  Sending 5, 100-byte ICMP Echos to 192.168.1.1, timeout is 2 seconds:
-  !!!!!
-  Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
+    Type escape sequence to abort.
+    Sending 5, 100-byte ICMP Echos to 192.168.1.1, timeout is 2 seconds:
+    !!!!!
+    Success rate is 100 percent (5/5), round-trip min/avg/max = 0/0/0 ms
 
 
 ### Часть 3. Оптимизация и проверка конфигурации OSPFv2 для одной области
