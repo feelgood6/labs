@@ -636,7 +636,7 @@ permit tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
 Все тесты прошли успешно!
 
 
-
+Выгруска из CPT [Здесь](https://github.com/feelgood6/labs/blob/57c7f90590a4413eff08e2614dfe263493b5014a/labs/labs9/labs9.pkt)
 
 
 
