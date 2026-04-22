@@ -375,33 +375,265 @@ HTTPS тоже работает
 
 ### Часть 7. Настройка и проверка списков контроля доступа (ACL)
 
+##### При проверке базового подключения компания требует реализации следующих политик безопасности:
+
+##### Политика1. Сеть Sales не может использовать SSH в сети Management (но в  другие сети SSH разрешен). 
+
+##### Политика 2. Сеть Sales не имеет доступа к IP-адресам в сети Management с помощью любого веб-протокола (HTTP/HTTPS). Сеть Sales также не имеет доступа к интерфейсам R1 с помощью любого веб-протокола. Разрешён весь другой веб-трафик (обратите внимание — Сеть Sales  может получить доступ к интерфейсу Loopback 1 на R1).
+
+##### Политика3. Сеть Sales не может отправлять эхо-запросы ICMP в сети Operations или Management. Разрешены эхо-запросы ICMP к другим адресатам. 
+
+##### Политика 4: Cеть Operations  не может отправлять ICMP эхозапросы в сеть Sales. Разрешены эхо-запросы ICMP к другим адресатам. 
+
+
 ##### Шаг 1. Проанализируйте требования к сети и политике безопасности для планирования реализации ACL.
+
+Тут пока тяжело для понимания, постараюсь прописывать все шаги, чтобы самому понятней было.
+
+Весь трафик маршрутизирует S1, на нем разворачиваем списки.
+
+По правилу - расширенные списки  должны размещаться ближе к источнику, получается на вход сабинтерфейсов.
+
+Сначала хочу создать списки, потом уже подключить на интерфейсе.
+
+
 
 ##### Шаг 2. Разработка и применение расширенных списков доступа, которые будут соответствовать требованиям политики безопасности.
 
+создаем список по политикам Sales - у него 3 полити, так что назову Sales_ACL
+
+
+
+1. Сеть Sales 10.40.0.0 255.255.255.0 , сеть Management 10.20.0.0 255.255.255.0 - это нужно запретить , остальной трафик ssh(22 порт) разрешить.
+
+       R1(config-ext-nacl)#deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 22
+
+2. Сеть Sales 10.40.0.0 255.255.255.0 не имеет доступ с помощью любого веб-протокола (HTTP/HTTPS) к  Management 10.20.0.0 255.255.255.0, пропишу это правило, но тк веб трафик проверить можем только через сервер(10.50.0.5) заблокируем и всю сеть 10.50.0.0 255.255.255.0 для HTTP/HTTPS.
+
+        R1(config-ext-nacl)#deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 80
+        R1(config-ext-nacl)#deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 443
+   
+        R1(config-ext-nacl)#deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 80
+        R1(config-ext-nacl)#deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
+
+3. Сеть Sales 10.40.0.0 255.255.255.0 не может отправлять эхо-запросы ICMP в сети Operations 10.30.0.0 255.255.255.0 или Management 10.20.0.0 255.255.255.0
+
+        R1(config-ext-nacl)#deny icmp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 echo
+        R1(config-ext-nacl)#deny icmp 10.40.0.0 0.0.0.255 10.30.0.0 0.0.0.255 echo
+
+Также интересно заблокировать эхо-запросы ICMP на адрес интерфейса g0/0/0 на S1(10.50.0.1) ? но для сервера(10.50.0.5) оставить, веб ресурс на нем заблокирован, пинг хочу оставить
+
+        R1(config-ext-nacl)#deny icmp 10.40.0.0 0.0.0.255 host 10.50.0.1 echo
+
+Получается, что запреты мы прописали, остальной трафик должен проходить, значит нужно прописать разрешение
+
+        R1(config-ext-nacl)#permit ip any any
+
+
+4. сетm Operations 10.30.0.0 255.255.255.0 сидит на другом интерфейсе, сделаю другой список Operations_ACL
+
+        R1(config)#ip access-list extended Operations_ACL
+
+   
+Cеть Operations 10.30.0.0 255.255.255 не может отправлять ICMP эхозапросы в сеть Sales 10.40.0.0 255.255.255.0
+
+        R1(config-ext-nacl)#deny icmp 10.30.0.0 0.0.0.255 10.40.0.0 0.0.0.255 echo
+        R1(config-ext-nacl)#permit ip any any
+
+    
+        
+
 ##### Шаг 3. Убедитесь, что политики безопасности применяются развернутыми списками доступа.
 
+Включаем работу списков на интерфейсах, для Sales_ACL это сабинтерфейс g0/0/1.40 , для Operations_ACL - g0/0/1.30
+
+        R1(config)#int g0/0/1.30
+        R1(config-subif)#ip access-group Operations_ACL in
+
+        R1(config)#int g0/0/1.40
+        R1(config-subif)#ip access-group Sales_ACL in
+
+        
+
+
+Проверяем
 
 <img width="872" height="364" alt="image" src="https://github.com/user-attachments/assets/da813443-379d-483d-8d3c-3255706a0da1" />
 
 
+На PC-A
+
+        C:\>ping 10.40.0.10
+
+        Pinging 10.40.0.10 with 32 bytes of data:
+
+        Reply from 10.30.0.1: Destination host unreachable.
+        Reply from 10.30.0.1: Destination host unreachable.
+        Reply from 10.30.0.1: Destination host unreachable.
+        Reply from 10.30.0.1: Destination host unreachable.
+
+        Ping statistics for 10.40.0.10:
+            Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+        C:\>ping 10.20.0.1
+
+        Pinging 10.20.0.1 with 32 bytes of data:
+
+        Reply from 10.20.0.1: bytes=32 time<1ms TTL=255
+        Reply from 10.20.0.1: bytes=32 time<1ms TTL=255
+        Reply from 10.20.0.1: bytes=32 time<1ms TTL=255
+        Reply from 10.20.0.1: bytes=32 time=3ms TTL=255
+
+        Ping statistics for 10.20.0.1:
+            Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+        Approximate round trip times in milli-seconds:
+            Minimum = 0ms, Maximum = 3ms, Average = 0ms
 
 
 
+На PC-B
+
+
+        C:\>ping 10.30.0.10
+
+        Pinging 10.30.0.10 with 32 bytes of data:
+
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+
+        Ping statistics for 10.30.0.10:
+            Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+        C:\>ping 10.20.0.1
+
+        Pinging 10.20.0.1 with 32 bytes of data:
+
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+
+        Ping statistics for 10.20.0.1:
+            Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+        C:\>ping 172.16.1.1
+
+        Pinging 172.16.1.1 with 32 bytes of data:
+
+        Reply from 172.16.1.1: bytes=32 time<1ms TTL=255
+        Reply from 172.16.1.1: bytes=32 time<1ms TTL=255
+        Reply from 172.16.1.1: bytes=32 time<1ms TTL=255
+        Reply from 172.16.1.1: bytes=32 time<1ms TTL=255
+
+        Ping statistics for 172.16.1.1:
+            Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+        Approximate round trip times in milli-seconds:
+            Minimum = 0ms, Maximum = 0ms, Average = 0ms
 
 
 
+Два дополнительныйх теста по ICMP запросам интерфейса g0/0/0(заблокирован) и сервера(оставили разрешенным)
+
+
+        C:\>ping 10.50.0.1
+
+        Pinging 10.50.0.1 with 32 bytes of data:
+
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+        Reply from 10.40.0.1: Destination host unreachable.
+
+        Ping statistics for 10.50.0.1:
+            Packets: Sent = 4, Received = 0, Lost = 4 (100% loss),
+
+        C:\>ping 10.50.0.5
+
+        Pinging 10.50.0.5 with 32 bytes of data:
+
+        Reply from 10.50.0.5: bytes=32 time<1ms TTL=127
+        Reply from 10.50.0.5: bytes=32 time<1ms TTL=127
+        Reply from 10.50.0.5: bytes=32 time<1ms TTL=127
+        Reply from 10.50.0.5: bytes=32 time<1ms TTL=127
+
+        Ping statistics for 10.50.0.5:
+            Packets: Sent = 4, Received = 4, Lost = 0 (0% loss),
+        Approximate round trip times in milli-seconds:
+            Minimum = 0ms, Maximum = 0ms, Average = 0ms
+
+
+Тут я решил немного изменить список для теста, c PC-B HTTP заблокировать на серваке, а для HTTPS открыть
+
+для этого смотрим списки
+
+    R1#show access-lists 
+    Extended IP access list Sales_ACL
+        10 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 22
+        20 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq www
+        30 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 443
+        40 deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq www
+        50 deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
+        60 deny icmp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 echo (4 match(es))
+        70 deny icmp 10.40.0.0 0.0.0.255 10.30.0.0 0.0.0.255 echo (4 match(es))
+        80 deny icmp 10.40.0.0 0.0.0.255 host 10.50.0.1 echo (4 match(es))
+        90 permit ip any any (8 match(es))
+    Extended IP access list Operations_ACL
+        10 deny icmp 10.30.0.0 0.0.0.255 10.40.0.0 0.0.0.255 echo (4 match(es))
+        20 permit ip any any (4 match(es))
+
+Хочу поменять 50 deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443 - убираем его, для наглядности поставлю 50 разрешение на доступ , оно и так будет , это для наглядности.
+
+permit tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
 
 
 
+        R1#conf t
+        R1(config)#ip access-list extended Sales_ACL
+        R1(config-ext-nacl)#no 50
+        R1(config-ext-nacl)#50 permit tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
+
+        R1#show access-lists 
+        Extended IP access list Sales_ACL
+            10 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 22
+            20 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq www
+            30 deny tcp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 eq 443
+            40 deny tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq www
+            50 permit tcp 10.40.0.0 0.0.0.255 10.50.0.0 0.0.0.255 eq 443
+            60 deny icmp 10.40.0.0 0.0.0.255 10.20.0.0 0.0.0.255 echo (4 match(es))
+            70 deny icmp 10.40.0.0 0.0.0.255 10.30.0.0 0.0.0.255 echo (4 match(es))
+            80 deny icmp 10.40.0.0 0.0.0.255 host 10.50.0.1 echo (4 match(es))
+            90 permit ip any any (8 match(es))
+        Extended IP access list Operations_ACL
+            10 deny icmp 10.30.0.0 0.0.0.255 10.40.0.0 0.0.0.255 echo (4 match(es))
+            20 permit ip any any (4 match(es))
+
+Проверяем
 
 
+<img width="703" height="685" alt="image" src="https://github.com/user-attachments/assets/f9dad67c-b4ff-4a07-956f-f2151fbb085c" />
+
+<img width="705" height="689" alt="image" src="https://github.com/user-attachments/assets/67483540-5fae-4101-ba9b-c4142f4ae528" />
+
+Отлично:)
+
+Теперь SSH на 10.20.0.4 и 172.16.1.1
+
+        C:\>ssh -l SSHadmin 10.20.0.4
+
+        % Connection timed out; remote host not responding
+        
+        C:\>ssh -l SSHadmin 172.16.1.1
+
+        Password: 
+
+        FG66
+
+        R1#
 
 
-
-
-
-
+Все тесты прошли успешно!
 
 
 
